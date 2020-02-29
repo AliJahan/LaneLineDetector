@@ -8,7 +8,9 @@ import math
 
 
 class ImageOperations(object):
-    # def __init__(self):
+    # def __init__(self,nb_frame):
+        # self.nb_frame_ = nb_frame
+
     def read_image(self, file_name):
         """ Reads image from the file"""
         return mpimg.imread(file_name)
@@ -120,6 +122,8 @@ class ImageOperations(object):
         
     # @staticmethod
     def process_image(self, image):
+        # if self.nb_frame_ == 0:
+        cv2.imwrite('test_images/challenge.jpg', image)
         # print(image.shape)
         gray = cv2.cvtColor(image,cv2.COLOR_RGB2GRAY)
         # print(gray.shape)
@@ -158,7 +162,6 @@ class ImageOperations(object):
 
         length = image.shape[0]
         length = image.shape[0]
-        print()
         buttom_left = (30, 600)
         top_left = (445, 320)
         top_right = (520, 320)
@@ -183,44 +186,44 @@ class ImageOperations(object):
                         pos_slope.append((x1,y1))
                         pos_slope.append((x2,y2))
                         pos_slopes.append(((y2-y1)/(x2-x1)))
-                    # cv2.line(line_image,(x1,y1),(x2,y2),(0,255,0),5)
-        # neg_median = statistics.median(neg_slopes)
-        # pos_median = statistics.median(pos_slopes)
-        # threshold = .2
+        neg_median = statistics.median(neg_slopes)
+        pos_median = statistics.median(pos_slopes)
+        threshold = .2
 
-        # tmp = []
-        # for i in range(0,len(neg_slope),2):
-        #     slope = (neg_slope[i+1][1]-neg_slope[i][1])/(neg_slope[i+1][0]-neg_slope[i][0])
-        #     if abs(slope-neg_median) < threshold:
-        #         tmp.append(neg_slope[i])
-        #         tmp.append(neg_slope[i+1])
-
-        # neg_slope = tmp
-        # tmp = []
-        # for i in range(0,len(pos_slope),2):
-        #     slope = (pos_slope[i+1][1]-pos_slope[i][1])/(pos_slope[i+1][0]-pos_slope[i][0])
-        #     if abs(slope-pos_median) < threshold:
-        #         tmp.append(pos_slope[i])
-        #         tmp.append(pos_slope[i+1])
-        # pos_slope = tmp
+        tmp = []
         for i in range(0,len(neg_slope),2):
-            cv2.line(line_image,neg_slope[i],neg_slope[i+1],(0,255,0),5)
+            slope = (neg_slope[i+1][1]-neg_slope[i][1])/(neg_slope[i+1][0]-neg_slope[i][0])
+            if abs(slope-neg_median) < threshold:
+                tmp.append(neg_slope[i])
+                tmp.append(neg_slope[i+1])
+
+        neg_slope = tmp
+        tmp = []
         for i in range(0,len(pos_slope),2):
-            cv2.line(line_image,pos_slope[i],pos_slope[i+1],(0,0,255),5)
+            slope = (pos_slope[i+1][1]-pos_slope[i][1])/(pos_slope[i+1][0]-pos_slope[i][0])
+            if abs(slope-pos_median) < threshold:
+                tmp.append(pos_slope[i])
+                tmp.append(pos_slope[i+1])
+        pos_slope = tmp
+        # for i in range(0,len(neg_slope),2):
+        #     cv2.line(line_image,neg_slope[i],neg_slope[i+1],(0,255,0),5)
+        # for i in range(0,len(pos_slope),2):
+        #     cv2.line(line_image,pos_slope[i],pos_slope[i+1],(0,0,255),5)
         # print(len(neg_slope))
         
-        # [vx,vy,x,y] = cv2.fitLine(np.array(neg_slope, dtype=np.int32), cv2.DIST_L2,0,0.01,0.01)
-        # lefty = int(((top_right[0]-x)*vy/vx) + (y))
-        # righty = int(((buttom_right[0]-x)*vy/vx)+(y))
-        # cv2.line(image,(buttom_right[0],righty),(top_right[0],lefty),(0,0,255), 4)
+        [vx,vy,x,y] = cv2.fitLine(np.array(neg_slope, dtype=np.int32), cv2.DIST_L2,0,0.01,0.01)
+        lefty = int(((top_right[0]-x)*vy/vx) + (y))
+        righty = int(((buttom_right[0]-x)*vy/vx)+(y))
+        cv2.line(image,(buttom_right[0],righty),(top_right[0],lefty),(0,0,255), 4)
  
-        # [vx,vy,x,y] = cv2.fitLine(np.array(pos_slope, dtype=np.int32), cv2.DIST_L2,0,0.01,0.01)
-        # lefty = int(((top_left[0]-x)*vy/vx) + (y))
-        # righty = int(((buttom_left[0]-x)*vy/vx)+(y))
-        # cv2.line(image,(buttom_left[0],righty),(top_left[0],lefty),(0,0,255),4)
+        [vx,vy,x,y] = cv2.fitLine(np.array(pos_slope, dtype=np.int32), cv2.DIST_L2,0,0.01,0.01)
+        lefty = int(((top_left[0]-x)*vy/vx) + (y))
+        righty = int(((buttom_left[0]-x)*vy/vx)+(y))
+        cv2.line(image,(buttom_left[0],righty),(top_left[0],lefty),(0,0,255),4)
         
         # Create a "color" binary image to combine with line image
-        color_edges = np.dstack((image[:,:,0],image[:,:,1],image[:,:,2])) 
+        # color_edges = np.dstack((image[:,:,0],image[:,:,1],image[:,:,2])) 
+        color_edges = np.dstack((edges, edges, edges)) 
         # Draw the lines on the edge image
         lines_edges = cv2.addWeighted(color_edges, 1, line_image, .5, 0) #,(515, 310), (980, 600)
         cv2.polylines(lines_edges, np.array([[top_left,top_right]], dtype=np.int32),False,(255,255,0) )
@@ -229,7 +232,9 @@ class ImageOperations(object):
         
         return lines_edges
 
+# n_frame = 0
 def wrapped_process_image(image):
     # print("s")
     d = ImageOperations()
+    # n_frame += 1
     return d.process_image(image)
