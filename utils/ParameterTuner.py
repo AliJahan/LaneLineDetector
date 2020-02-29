@@ -48,22 +48,38 @@ class App(QWidget):
     def u_button_left_x(self, value):
         all_data = self.left_
         self.left_ = (value, all_data[1], all_data[2], all_data[3])
+        # set butom_right minimum
+        current = self.button_right_x.value()
+        self.button_right_x.setMiminum(value)
+        self.button_right_x.set(current)
         self.redraw()
     def u_button_right_x(self, value):
         all_data = self.right_
         self.right_ = (value, all_data[1], all_data[2], all_data[3])
+        # SEt button_left maximum
+        current = self.button_left_x.value()
+        self.button_left_x.setMaximum(value)
+        self.button_left_x.set(current)
         self.redraw()
     def u_top_left_x(self, value):
         all_data = self.left_
         self.left_ = (all_data[0], all_data[1], value, all_data[3])
         all_data = self.top_
         self.top_ = (value, all_data[1], all_data[2], all_data[3])
+        #Set top_right minimum
+        current = self.top_right_x.value()
+        self.top_right_x.setMiminum(value)
+        self.top_right_x.set(current)
         self.redraw()
     def u_top_right_x(self, value):
         all_data = self.right_
         self.right_ = (all_data[0], all_data[1], value, all_data[3])
         all_data = self.top_
         self.top_ = (all_data[0], all_data[1], value, all_data[3])
+        #Set top_right maximum
+        current = self.top_left_x.value()
+        self.top_left_x.setMaximum(value)
+        self.top_left_x.set(current)
         self.redraw()
     def u_top_y(self, value):
         all_data = self.top_
@@ -72,8 +88,6 @@ class App(QWidget):
         self.left_ = (all_datal[0], all_datal[1], all_datal[2], value)
         all_datar = self.right_
         self.right_ = (all_datar[0], all_datar[1], all_datar[2], value)
-        print(value)
-        print(self.left_)
         self.redraw()
     def initUI(self):
         self.setWindowTitle(self.title)
