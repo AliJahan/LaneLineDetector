@@ -2,13 +2,30 @@ import sys
 from PyQt5.QtWidgets import  *#QApplication, QWidget, QLabel
 from PyQt5.QtGui import *
 from PyQt5.QtCore import *
-
+import matplotlib.image as mpimg
+import matplotlib.pyplot as plt
+import cv2
+import numpy as np
 class App(QWidget):
 
     def __init__(self, image):
         super().__init__()
         self.image_ = image
-        self.pixmap = QPixmap(self.image_)
+        img = cv2.imread(self.image_)
+        gray = cv2.cvtColor(img,cv2.COLOR_RGB2GRAY)
+        kernel_size = 7
+        blur_gray = cv2.GaussianBlur(gray,(kernel_size, kernel_size),0)
+        low_threshold = 50
+        high_threshold = 150
+        edges = cv2.Canny(blur_gray, low_threshold, high_threshold)
+        #cv2.imshow("tt",edges)
+        #cv2.waitKey(10000)
+        height, width, bytesPerComponent = img.shape
+        bytesPerLine = 3 * width
+        color_edges = np.dstack((edges,edges,edges))
+        self.QImg = QImage(color_edges.data, width, height, bytesPerLine,QImage.Format_RGB888)
+        self.pixmap = QPixmap()
+        self.pixmap = QPixmap.fromImage(self.QImg)
         self.label = QLabel(self)
         button = QPushButton("Export ROI")
         button.clicked.connect(self.export)
@@ -33,10 +50,12 @@ class App(QWidget):
         self.info_layout_up = QHBoxLayout()
         self.info_layout_down = QHBoxLayout()
         self.pic_layout = QHBoxLayout()
-        self.top_slider_layput = QHBoxLayout()
+        self.top_slider_layout = QHBoxLayout()
+        self.buttom_slider_layout = QHBoxLayout()
         self.slider_pic_layout = QHBoxLayout()
+        self.slider_pic_layout.addLayout(self.buttom_slider_layout)
         self.slider_pic_layout.addLayout(self.pic_layout)
-        self.slider_pic_layout.addLayout(self.top_slider_layput)
+        self.slider_pic_layout.addLayout(self.top_slider_layout)
         self.all_pic_layout = QVBoxLayout()
         self.all_layouts = QVBoxLayout()
         self.info_layout_down.addWidget(self.label_bl)
@@ -53,6 +72,7 @@ class App(QWidget):
         self.left_ = (0,self.pixmap.height(), 0, 0 )
         self.right_ = (self.pixmap.width(), self.pixmap.height(), self.pixmap.width(), 0)
         self.top_ = (0, 0, self.pixmap.width(), 0 )
+        self.buttom_ = (0, self.pixmap.height(), self.pixmap.width(), self.pixmap.height() )
         self.first_draw_ = True
         self.button_left_x = QSlider(Qt.Horizontal)
         self.button_left_x.setMaximum(self.pixmap.width())
@@ -74,6 +94,10 @@ class App(QWidget):
         self.top_y.setMaximum(self.pixmap.height())
         self.top_y.setValue(self.pixmap.height())
         self.top_y.setMinimum(0)
+        self.buttom_y = QSlider(Qt.Vertical)
+        self.buttom_y.setMaximum(self.pixmap.height())
+        self.buttom_y.setValue(0)
+        self.buttom_y.setMinimum(0)
 
         self.all_layouts.insertLayout(0,self.knobs_layout_up)
         self.all_layouts.insertLayout(2,self.knobs_layout_down)
@@ -85,12 +109,14 @@ class App(QWidget):
         self.knobs_layout_up.addWidget(self.top_left_x)
         self.knobs_layout_up.addStretch(.1)
         self.knobs_layout_up.addWidget(self.top_right_x)
-        self.top_slider_layput.addWidget(self.top_y)
+        self.top_slider_layout.addWidget(self.top_y)
+        self.buttom_slider_layout.addWidget(self.buttom_y)
         self.button_left_x.valueChanged.connect(self.u_button_left_x)
         self.button_right_x.valueChanged.connect(self.u_button_right_x)
         self.top_left_x.valueChanged.connect(self.u_top_left_x)
         self.top_right_x.valueChanged.connect(self.u_top_right_x)
         self.top_y.valueChanged.connect(self.u_top_y)
+        self.buttom_y.valueChanged.connect(self.u_buttom_y)
         self.all_layouts.insertLayout(1,self.all_pic_layout)
         self.setLayout(self.all_layouts)
         self.initUI()
@@ -98,11 +124,13 @@ class App(QWidget):
         
         print("bottom_left = ("+str(self.left_[0])+","+str(self.left_[1])+")")
         print("upper_left = ("+str(self.left_[2])+","+str(self.left_[3])+")")
-        print("bottom_right = ("+str(self.right_[0])+","+str(self.right_[0])+")")
+        print("bottom_right = ("+str(self.right_[0])+","+str(self.right_[1])+")")
         print("upper_right = ("+str(self.right_[2])+","+str(self.right_[3])+")")
     def u_button_left_x(self, value):
         all_data = self.left_
         self.left_ = (value, all_data[1], all_data[2], all_data[3])
+        all_data = self.buttom_
+        self.buttom_ = (value, all_data[1], all_data[2], all_data[3])
         # set butom_right minimum
         current = self.button_right_x.value()
         self.button_right_x.setMinimum(value)
@@ -111,6 +139,8 @@ class App(QWidget):
     def u_button_right_x(self, value):
         all_data = self.right_
         self.right_ = (value, all_data[1], all_data[2], all_data[3])
+        all_data = self.buttom_
+        self.buttom_ = (all_data[0], all_data[1], value, all_data[3])
         # SEt button_left maximum
         current = self.button_left_x.value()
         self.button_left_x.setMaximum(value)
@@ -144,6 +174,23 @@ class App(QWidget):
         self.left_ = (all_datal[0], all_datal[1], all_datal[2], val)
         all_datar = self.right_
         self.right_ = (all_datar[0], all_datar[1], all_datar[2], val)
+        current = self.buttom_y.value()
+        self.buttom_y.setMaximum(value)
+        self.buttom_y.setValue(current)
+        self.redraw()
+    def u_buttom_y(self, value):
+        val = self.pixmap.height() - value
+        all_data = self.buttom_
+        self.buttom_ = (all_data[0], val, all_data[2], val)
+        all_datal = self.left_
+        self.left_ = (all_datal[0], val, all_datal[2], all_datal[3])
+        all_datar = self.right_
+        self.right_ = (all_datar[0], val, all_datar[2], all_datar[3])
+        current = self.top_y.value()
+        self.top_y.setMinimum(value)
+        self.top_y.setValue(current)
+        self.redraw()
+
         self.redraw()
     def initUI(self):
         self.setWindowTitle(self.title)
@@ -154,22 +201,22 @@ class App(QWidget):
         self.show()
     def redraw(self):
         #painter.setRenderHint(QPainter.Antialiasing)
-	
+        
         painter = QPainter()
         painter.begin(self)
-        self.pixmap.load(self.image_)
+        self.pixmap = QPixmap.fromImage(self.QImg) #.load(self.image_
         painter.drawPixmap(self.pixmap.width(), self.pixmap.height(), self.pixmap)
         painter.end()
         painter.begin(self.pixmap)
        # painter = QPainter(pixmap)
         pen = QPen(Qt.red,3, Qt.SolidLine, Qt.SquareCap, Qt.BevelJoin)
         painter.setPen(pen)
-        for i in [self.left_, self.right_, self.top_]:
+        for i in [self.left_, self.right_, self.top_, self.buttom_]:
                 painter.drawLine(i[0],i[1],i[2],i[3]);
         self.label.setPixmap(self.pixmap)
         self.label_bl.setText("["+str(self.left_[0])+","+str(self.left_[1])+"]")
         self.label_ul.setText("["+str(self.left_[2])+","+str(self.left_[3])+"]")
-        self.label_br.setText("["+str(self.right_[0])+","+str(self.right_[0])+"]")
+        self.label_br.setText("["+str(self.right_[0])+","+str(self.right_[1])+"]")
         self.label_ur.setText("["+str(self.right_[2])+","+str(self.right_[3])+"]")
         if not self.first_draw_:
                 self.info_layout_down.itemAt(0).widget().deleteLater()
@@ -190,7 +237,7 @@ class App(QWidget):
                 self.label_ul.setFont(self.newfont)
                 self.label_bl.setText("["+str(self.left_[0])+","+str(self.left_[1])+"]")
                 self.label_ul.setText("["+str(self.left_[2])+","+str(self.left_[3])+"]")
-                self.label_br.setText("["+str(self.right_[0])+","+str(self.right_[0])+"]")
+                self.label_br.setText("["+str(self.right_[0])+","+str(self.right_[1])+"]")
                 self.label_ur.setText("["+str(self.right_[2])+","+str(self.right_[3])+"]")
                 self.label.setPixmap(self.pixmap)
                 #self.all_layouts.itemAt(1).width().deleteLater()
@@ -205,6 +252,7 @@ class App(QWidget):
         #self.all_layouts.insertLayout(1,self.pic_layout)
         painter.end()
 if __name__ == '__main__':
+
     app = QApplication(sys.argv)
-    ex = App('../test_images/solidYellowCurve2.jpg')
+    ex = App('../test_images/challenge.jpg')
     sys.exit(app.exec_())
