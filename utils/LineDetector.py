@@ -70,9 +70,9 @@ class LineDetector:
         # first, define the polygon by vertices
         rows, cols   = image.shape[:2]
         bottom_left  = [cols*0.1, rows*0.95]
-        top_left     = [cols*0.4, rows*0.6]
+        top_left     = [cols*0.4, rows*0.65]
         bottom_right = [cols*0.9, rows*0.95]
-        top_right    = [cols*0.6, rows*0.6] 
+        top_right    = [cols*0.6, rows*0.65] 
         # the vertices are an array of polygons (i.e array of arrays) and the data type must be integer
         vertices = np.array([[bottom_left, top_left, top_right, bottom_right]], dtype=np.int32)
         return self.filter_region(image, vertices)
@@ -153,7 +153,7 @@ class LineDetector:
             line = tuple(map(tuple, line)) # make sure it's tuples not numpy array for cv2.line to work
         return line
 
-    def draw_lane_lines(self, image, lines, color=[255, 0, 0], thickness=20):
+    def draw_lane_lines(self, image, lines, color=[255, 0, 0], thickness=10):
         # make a separate image to draw lines and combine with the orignal later
         line_image = np.zeros_like(image)
         for line in lines:
@@ -186,16 +186,3 @@ class LineDetector:
             processed.write_videofile(output_vids_path + self.video_.split("/")[-1], audio=False)
         else:
             print("This object is not capable of processing video")
-        
-    def show_vid(self):
-        if not self.video_mode:
-            print("No video processed")
-        else:
-            from IPython.display import HTML
-            global output_vids_path
-            print(output_vids_path + self.video_.split("/")[-1])
-            return HTML("""
-                <video width="960" height="540" controls>
-                <source src="{0}">
-                </video>
-            """.format(output_vids_path + self.video_.split("/")[-1]))
