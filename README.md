@@ -58,12 +58,12 @@ lines = hough_lines(selected_region)
 
 ## TODOs
 
-In order to tunig the paramaters, inspired by [this article](https://medium.com/@maunesh/finding-the-right-parameters-for-your-computer-vision-algorithm-d55643b6f954), a GUI is depeloped base on `PyQt5` to select the coordinates of the `region of interest`. 
+In order to tunig the paramaters, inspired by [this article](https://medium.com/@maunesh/finding-the-right-parameters-for-your-computer-vision-algorithm-d55643b6f954), a GUI (`utils/ROI_tuner.py`) is depeloped using `PyQt5` to select the coordinates of the `region of interest`. 
 
 <img src="utils/roi.png" width="480" alt="Combined Image" />
 
 
-Due to lack of time, `` code is a **REAL MESS** now.
+Due to lack of time, `RIO_tuner` code is a **REAL MESS** now.
 
 **TODO**: It should be cleaned and other paramters like:
 
