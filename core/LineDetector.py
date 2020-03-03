@@ -16,6 +16,9 @@ class LineDetector:
         self.left_lines_  = deque(maxlen=500)
         self.right_lines_ = deque(maxlen=500)
 
+    def read_image(self, image_path):
+        return plt.imread(image_path)
+    
     def show_images(self, images, cmap=None):
         cols = 2
         rows = (len(images)+1)//cols

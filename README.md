@@ -1,56 +1,76 @@
 # **Finding Lane Lines on the Road** 
 [![Udacity - Self-Driving Car NanoDegree](https://s3.amazonaws.com/udacity-sdc/github/shield-carnd.svg)](http://www.udacity.com/drive)
 
-<img src="examples/laneLines_thirdPass.jpg" width="480" alt="Combined Image" />
+In this project we will detect lane lines in images using Python and [OpenCV](https://opencv.org/).  
 
-Overview
----
-
-When we drive, we use our eyes to decide where to go.  The lines on the road that show us where the lanes are act as our constant reference for where to steer the vehicle.  Naturally, one of the first things we would like to do in developing a self-driving car is to automatically detect lane lines using an algorithm.
-
-In this project you will detect lane lines in images using Python and OpenCV.  OpenCV means "Open-Source Computer Vision", which is a package that has many useful tools for analyzing images.  
-
-To complete the project, two files will be submitted: a file containing project code and a file containing a brief write up explaining your solution. We have included template files to be used both for the [code](https://github.com/udacity/CarND-LaneLines-P1/blob/master/P1.ipynb) and the [writeup](https://github.com/udacity/CarND-LaneLines-P1/blob/master/writeup_template.md).The code file is called P1.ipynb and the writeup template is writeup_template.md 
-
-To meet specifications in the project, take a look at the requirements in the [project rubric](https://review.udacity.com/#!/rubrics/322/view)
+<img src="examples/laneLines_thirdPass.jpg" width="480" alt="Annorated Image" />
 
 
-Creating a Great Writeup
----
-For this project, a great writeup should provide a detailed response to the "Reflection" section of the [project rubric](https://review.udacity.com/#!/rubrics/322/view). There are three parts to the reflection:
+## Overview
 
-1. Describe the pipeline
+The software pipelione consists of the following stages to detect the lane lines:
 
-2. Identify any shortcomings
+- Extracting yellow and white colors from the image.
+  
+- Converting the image to gray scale.
+  
+- Smoothing the image using [_Gaussian filter_](https://en.wikipedia.org/wiki/Gaussian_filter).
+  
+- Applying [_Canny edge detection_](https://en.wikipedia.org/wiki/Canny_edge_detector) algorithm from OpenCV.
+  
+- Applying [_Hough transform_](https://en.wikipedia.org/wiki/Hough_transform) to find lines.
 
-3. Suggest possible improvements
+- Categorazing the detected lines to _left_ (positive slope) and _right_ (negative slope) lines.
 
-We encourage using images in your writeup to demonstrate how your pipeline works.  
+- Finding one line for each class as the representative of that class using average of each line class.
 
-All that said, please be concise!  We're not looking for you to write a book here: just a brief description.
+- Drawing two lines (right and left) on the image. 
 
-You're not required to use markdown for your writeup.  If you use another method please just submit a pdf of your writeup. Here is a link to a [writeup template file](https://github.com/udacity/CarND-LaneLines-P1/blob/master/writeup_template.md). 
+## Requirements
+
+`python3` is used in this project along with the packages listed in `requirements.txt`. In order to install them, run the following command:
+
+```$ pip install -r requirements.txt```
+
+## Impelemetation
+The core of this project is a class named `LineDetector`, existing in `core/LineDetector.py`. It can be used in two ways:
+
+1- **Providing path to a video file to the class constructor**: in this case, using `process_video()` function, all the softwate pipeline will be applied to the video and the annotated video with the detected lines will be stored at `test_videos_output`. example:
+
+```
+ld = LineDetector('test_videos/challenge.mp4')
+ld.process_video()
+```
+
+2- **No path for video file is provided**: The object can be used as a set of functions to apply each stage of the software pipeline on an arbitary image. example:
+
+```
+ld = LineDetector()
+img = ld.read_image('test_images/solidWhiteRight.jpg')
+white_yellows = ld.select_white_yellow(img)
+gray = ld.convert_gray_scale(white_yellows)
+smoothed =  ld.apply_smoothing(gray)
+edges = ld.detect_edges(smoothed)
+selected_region = ld.select_region(edges)
+lines = hough_lines(selected_region)
+...
+```
+
+## TODOs
+
+In order to tunig the paramaters, inspired by [this article](https://medium.com/@maunesh/finding-the-right-parameters-for-your-computer-vision-algorithm-d55643b6f954), a GUI is depeloped base on `PyQt5` to select the coordinates of the `region of interest`. 
+
+<img src="utils/roi.png" width="480" alt="Combined Image" />
 
 
-The Project
----
+Due to lack of time, `` code is a **REAL MESS** now.
 
-## If you have already installed the [CarND Term1 Starter Kit](https://github.com/udacity/CarND-Term1-Starter-Kit/blob/master/README.md) you should be good to go!   If not, you should install the starter kit to get started on this project. ##
+**TODO**: It should be cleaned and other paramters like:
 
-**Step 1:** Set up the [CarND Term1 Starter Kit](https://github.com/udacity/CarND-Term1-Starter-Kit/blob/master/README.md) if you haven't already.
-
-**Step 2:** Open the code in a Jupyter Notebook
-
-You will complete the project code in a Jupyter notebook.  If you are unfamiliar with Jupyter Notebooks, check out [Udacity's free course on Anaconda and Jupyter Notebooks](https://classroom.udacity.com/courses/ud1111) to get started.
-
-Jupyter is an Ipython notebook where you can run blocks of code and see results interactively.  All the code for this project is contained in a Jupyter notebook. To start Jupyter in your browser, use terminal to navigate to your project directory and then run the following command at the terminal prompt (be sure you've activated your Python 3 carnd-term1 environment as described in the [CarND Term1 Starter Kit](https://github.com/udacity/CarND-Term1-Starter-Kit/blob/master/README.md) installation instructions!):
-
-`> jupyter notebook`
-
-A browser window will appear showing the contents of the current directory.  Click on the file called "P1.ipynb".  Another browser window will appear displaying the notebook.  Follow the instructions in the notebook to complete the project.  
-
-**Step 3:** Complete the project and submit both the Ipython notebook and the project writeup
-
-## How to write a README
-A well written README file can enhance your project and portfolio.  Develop your abilities to create professional README files by completing [this free course](https://www.udacity.com/course/writing-readmes--ud777).
-
+- _Canny edge detection_
+  
+- _Guassian filter_, and 
+  
+- _Hough transform_ 
+  
+should be added to it.
