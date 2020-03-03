@@ -11,21 +11,22 @@ class App(QWidget):
     def __init__(self, image):
         super().__init__()
         self.image_ = image
-        img = cv2.imread(self.image_)
-        gray = cv2.cvtColor(img,cv2.COLOR_RGB2GRAY)
-        kernel_size = 7
-        blur_gray = cv2.GaussianBlur(gray,(kernel_size, kernel_size),0)
-        low_threshold = 50
-        high_threshold = 150
-        edges = cv2.Canny(blur_gray, low_threshold, high_threshold)
+        #img = cv2.imread(self.image_)
+        #gray = cv2.cvtColor(img,cv2.COLOR_RGB2GRAY)
+        #kernel_size = 7
+        #blur_gray = cv2.GaussianBlur(gray,(kernel_size, kernel_size),0)
+        #low_threshold = 50
+        #high_threshold = 150
+        #edges = cv2.Canny(blur_gray, low_threshold, high_threshold)
         #cv2.imshow("tt",edges)
         #cv2.waitKey(10000)
-        height, width, bytesPerComponent = img.shape
-        bytesPerLine = 3 * width
-        color_edges = np.dstack((edges,edges,edges))
-        self.QImg = QImage(color_edges.data, width, height, bytesPerLine,QImage.Format_RGB888)
-        self.pixmap = QPixmap()
-        self.pixmap = QPixmap.fromImage(self.QImg)
+        #height, width, bytesPerComponent = img.shape
+        #bytesPerLine = 3 * width
+        #color_edges = np.dstack((edges,edges,edges))
+        #self.QImg = QImage(color_edges.data, width, height, bytesPerLine,QImage.Format_RGB888)
+        #self.pixmap = QPixmap()
+        #self.pixmap = QPixmap.fromImage(self.QImg)
+        self.pixmap = QPixmap(self.image_)
         self.label = QLabel(self)
         button = QPushButton("Export ROI")
         button.clicked.connect(self.export)
@@ -204,7 +205,8 @@ class App(QWidget):
         
         painter = QPainter()
         painter.begin(self)
-        self.pixmap = QPixmap.fromImage(self.QImg) #.load(self.image_
+        #self.pixmap = QPixmap.fromImage(self.QImg) #
+        self.pixmap.load(self.image_)
         painter.drawPixmap(self.pixmap.width(), self.pixmap.height(), self.pixmap)
         painter.end()
         painter.begin(self.pixmap)
@@ -254,5 +256,5 @@ class App(QWidget):
 if __name__ == '__main__':
 
     app = QApplication(sys.argv)
-    ex = App('../test_images/challenge.jpg')
+    ex = App('../test_images/solidWhiteCurve.jpg')
     sys.exit(app.exec_())
